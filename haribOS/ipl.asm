@@ -1,6 +1,8 @@
 ; hello-os
 ; TAB=4
 
+CYLS	EQU	10				; CYLS = 10 を定義
+
 	ORG		0x7c00			; このプログラムがどこに読み込まれるか
 
 ; 以下は標準的なFAT12フォーマットフロッピーディスクのための記述
@@ -26,6 +28,7 @@
 	TIMES	18 DB 0			; とりあえず18バイト開けておく
 
 ; Program Main Body
+; 10(シリンダー) * 2(表裏) * 18(sector) * 512(byte/sector) = 184,320バイト = 180KB を読み込む
 entry:
 	MOV		AX, 0			; アキュムレータレジスタの初期化
 	MOV		SS, AX			; SSはスタックセグメント
@@ -73,6 +76,18 @@ next:
 	ADD		CL, 1			; CLに1足して、次のセクタをよむ用にする
 	CMP		CL, 18			; CLと18を比較
 	JBE		readloop		; CL <= 18 だったらreadloop
+
+	; セクタを18まで読み終わった時
+	MOV		CL, 1			; セクタを1に戻す
+	ADD		DH, 1			; ヘッドに1足す => ヘッドを1にして裏面を読む
+	CMP		DH, 2			; 裏面を読み終わっているかどうかのチェック
+	JB		readloop		; DH < 2 だったら readloop
+
+	; 裏面を読み終わった時
+	MOV		DH, 0			; ヘッドを表に戻す
+	ADD		CH, 1			; シリンダ番号をIncrement	
+	CMP		CH, CYLS		; シリンダを読み終えたかどうか
+	JB		readloop		; CH < CYLS だっらreadloop
 
 fin:
 	HLT						; 何かあるまでCPUを停止
