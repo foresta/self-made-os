@@ -48,6 +48,7 @@ entry:
 	MOV		DH, 0			; ヘッド0
 	MOV		CL, 2			; セクタ2
 
+readloop:
 	MOV		SI, 0			; 失敗回数を数えるためのレジスタ
 
 retry:
@@ -56,7 +57,7 @@ retry:
 	MOV		BX, 0
 	MOV		DL, 0x00		; A ドライブ
 	INT		0x13			; ディスクBIOSの呼び出し
-	JNC		fin				; carry フラグが1じゃない = 失敗じゃない → fin
+	JNC		next			; carry フラグが1じゃない = 失敗じゃない → fin
 	ADD		SI, 1			; 失敗回数のIncrement
 	CMP		SI, 5			; 5回になっているか
 	JAE		error			; if SI >= 5 then error. (jump if above or equal)
@@ -64,6 +65,14 @@ retry:
 	MOV		DL, 0x00		; Aドライブ
 	INT		0x13			; ドライブのリセット
 	JMP		retry			; ループ
+
+next:
+	MOV		AX, ES			; アドレスを 0x0020進める. バッファアドレスは ES * 16 + BX
+	ADD		AX, 0x0020		; 1セクタ512バイトなので 0x0020 * 16 = 32 * 16 = 512 分だけバッファアドレスを進めたい
+	MOV		ES, AX			; バッファアドレスで使用されるEXをすすめる 
+	ADD		CL, 1			; CLに1足して、次のセクタをよむ用にする
+	CMP		CL, 18			; CLと18を比較
+	JBE		readloop		; CL <= 18 だったらreadloop
 
 fin:
 	HLT						; 何かあるまでCPUを停止
