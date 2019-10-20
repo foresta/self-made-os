@@ -48,12 +48,22 @@ entry:
 	MOV		DH, 0			; ヘッド0
 	MOV		CL, 2			; セクタ2
 
+	MOV		SI, 0			; 失敗回数を数えるためのレジスタ
+
+retry:
 	MOV		AH, 0x02		; AH=0x02 : ディスク読み込み
 	MOV		AL, 1			; 1セクタ
 	MOV		BX, 0
 	MOV		DL, 0x00		; A ドライブ
 	INT		0x13			; ディスクBIOSの呼び出し
-	JC		error
+	JNC		fin				; carry フラグが1じゃない = 失敗じゃない → fin
+	ADD		SI, 1			; 失敗回数のIncrement
+	CMP		SI, 5			; 5回になっているか
+	JAE		error			; if SI >= 5 then error. (jump if above or equal)
+	MOV		AH, 0x00
+	MOV		DL, 0x00		; Aドライブ
+	INT		0x13			; ドライブのリセット
+	JMP		retry			; ループ
 
 fin:
 	HLT						; 何かあるまでCPUを停止
