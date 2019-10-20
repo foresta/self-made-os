@@ -1,5 +1,5 @@
 QEMU		= qemu-system-i386
-QEMU_ARGS	= -L . -m 32 -rtc base=localtime -vga std -drive file=helloos.img,index=0,if=floppy,format=raw
+QEMU_ARGS	= -L . -m 32 -rtc base=localtime -vga std -drive file=boot.img,index=0,if=floppy,format=raw
 
 .DEFAULT_GOAL: all
 .PHONY: all
@@ -10,17 +10,17 @@ ipl.bin: ipl.asm
 %.bin: %.asm
 	nasm $^ -o $@ -l $*.lst
 
-helloos.img: ipl.bin
+boot.img: ipl.bin
 	cat $^ > $@
 
 
 .PHONY: img
 img:
-	make helloos.img
+	make boot.img
 
 .PHONY: run
 
-run: helloos.img
+run: ipl.bin
 	make img
 	$(QEMU) $(QEMU_ARGS)	
 
