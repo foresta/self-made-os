@@ -40,3 +40,11 @@ Check install
 $ nasm -v
 NASM version 2.14.02 compiled on Sep 28 2019
 ```
+
+### Install mtools
+
+Using `mtools` for write OS to disk
+
+```
+$ brew install mtools
+```

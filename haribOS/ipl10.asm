@@ -2,6 +2,7 @@
 ; TAB=4
 
 CYLS	EQU	10				; CYLS = 10 を定義
+OS_BODY	EQU	0xc200			; OS_BODY = 0xc200を設定. OS本体が読み込まれている相対アドレス
 
 	ORG		0x7c00			; このプログラムがどこに読み込まれるか
 
@@ -88,6 +89,8 @@ next:
 	ADD		CH, 1			; シリンダ番号をIncrement	
 	CMP		CH, CYLS		; シリンダを読み終えたかどうか
 	JB		readloop		; CH < CYLS だっらreadloop
+
+	JMP		OS_BODY			; ブーとセクタの読み込みが終わったのでOS本体を実行
 
 fin:
 	HLT						; 何かあるまでCPUを停止
