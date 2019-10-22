@@ -8,14 +8,21 @@ QEMU_ARGS	= -L . -m 32 -rtc base=localtime -vga std -drive file=${OSNAME}.img,in
 all: img
 
 ipl10.bin: ipl10.asm
-
-${OSNAME}.sys: ${OSNAME}.asm
-
+asmhead.bin: asmhead.asm
 %.bin: %.asm
 	nasm $^ -o $@ -l $*.lst
 
-%.sys: %.asm
-	nasm $^ -o $@ -l $*.lst
+bootpack.hrb: bootpack.c os.lds
+	gcc -march=i486 -m32 -nostdlib \
+		-T os.lds \
+		-fno-pic \
+		-o $@ \
+		bootpack.c
+
+${OSNAME}.sys: asmhead.bin bootpack.hrb
+# asmhead.bin => bootpack.hrbの順番にバイナリを並べる
+	cat $^ > $@
+
 
 ${OSNAME}.img: ipl10.bin ${OSNAME}.sys
 	# 1440KBのフロッピディスクに書き込む
@@ -38,4 +45,4 @@ run:
 
 .PHONY: clean
 clean:
-	@rm *.img *.bin
+	@rm *.img *.bin *.sys *.hrb
