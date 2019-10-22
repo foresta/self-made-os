@@ -5,7 +5,30 @@ QEMU_ARGS	= -L . -m 32 -rtc base=localtime -vga std -drive file=${OSNAME}.img,in
 
 .DEFAULT_GOAL: all
 .PHONY: all
-all: img
+all: 
+	make build-with-docker
+	make run
+
+build:
+	make build-with-docker
+
+.PHONY: run
+run:
+	$(QEMU) $(QEMU_ARGS)	
+
+
+#==============================
+
+.PHONY: build-with-docker
+build-with-docker:
+	docker build -t haribos .
+	docker run -v `pwd`:/haribos haribos make img	
+
+.PHONY: clean
+clean:
+	@rm *.img *.bin *.sys *.hrb
+
+#==============================
 
 ipl10.bin: ipl10.asm
 asmhead.bin: asmhead.asm
@@ -38,11 +61,4 @@ asm:
 img:
 	make ${OSNAME}.img
 
-.PHONY: run
-run:
-	make img
-	$(QEMU) $(QEMU_ARGS)	
 
-.PHONY: clean
-clean:
-	@rm *.img *.bin *.sys *.hrb
