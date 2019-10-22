@@ -1,6 +1,8 @@
+extern void _io_hlt(void);
+
 void HariMain(void) {
 
 fin:
-    /* HLTいれたいけどC言語では使えない */
+    _io_hlt();
     goto fin;
 }

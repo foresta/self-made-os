@@ -32,15 +32,22 @@ clean:
 
 ipl10.bin: ipl10.asm
 asmhead.bin: asmhead.asm
+nasmfunc.o: nasmfunc.asm
+
+
 %.bin: %.asm
 	nasm $^ -o $@ -l $*.lst
 
-bootpack.hrb: bootpack.c os.lds
+%.o: %.asm
+	nasm -g -f elf $^ -o $@
+
+BOOTPACK_FILES := bootpack.c nasmfunc.o
+bootpack.hrb: ${BOOTPACK_FILES} os.lds
 	gcc -march=i486 -m32 -nostdlib \
 		-T os.lds \
 		-fno-pic \
 		-o $@ \
-		bootpack.c
+		${BOOTPACK_FILES}
 
 ${OSNAME}.sys: asmhead.bin bootpack.hrb
 # asmhead.bin => bootpack.hrbの順番にバイナリを並べる
